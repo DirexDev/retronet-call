@@ -131,10 +131,10 @@
             <div class="tile-panel" style="flex: 2;">
                 <h3>Komunikacja P2P (Wideo / Czat)</h3>
                 
-                <!-- Panel pokazujący adres, ID oraz gotowy link do połączenia -->
+                <!-- Panel pokazujący adres oraz numeryczne ID 1001 -->
                 <div class="id-card">
                     <div>Adres sieciowy: <strong id="my-full-address" style="color: #61dafb;">Łączenie...</strong></div>
-                    <div>Kryptograficzne ID węzła: <strong id="my-peer-id" style="color: #61dafb; font-family: Consolas, monospace;">Oczekiwanie...</strong></div>
+                    <div>Numeryczne ID węzła: <strong id="my-peer-id" style="color: #61dafb; font-family: Consolas, monospace;">Oczekiwanie...</strong></div>
                     <div style="margin-top: 4px;">Link do szybkiego połączenia:</div>
                     <div class="link-row">
                         <input type="text" id="share-link-input" class="link-input" readonly value="Generowanie linku...">
@@ -143,7 +143,7 @@
                 </div>
 
                 <div class="controls">
-                    <input type="text" id="peer-id-input" class="control-input" placeholder="Wpisz ID znajomego, aby zadzwonić">
+                    <input type="text" id="peer-id-input" class="control-input" placeholder="Wpisz numeryczne ID znajomego (np. 1001), aby zadzwonić">
                     <button class="metro-btn" style="margin: 0; width: auto; padding: 0 20px;" onclick="connectToPeer()">Zadzwoń</button>
                 </div>
                 
@@ -245,7 +245,7 @@
                 document.getElementById('app-screen').style.display = 'flex';
                 document.getElementById('current-user-display').innerText = "Konto: " + username + "@retronet.call";
                 document.getElementById('my-full-address').innerText = username + "@retronet.call";
-                initPeerJS(username);
+                initPeerJS();
             }, 500);
         }
 
@@ -258,24 +258,26 @@
         let peer;
         let localStream;
 
-        function initPeerJS(username) {
-            const cleanId = "rn_node_" + username.replace(/[^a-zA-Z0-9]/g, '_');
-            peer = new Peer(cleanId);
+        function initPeerJS() {
+            // Ustawienie stałego numerycznego ID PeerJS na "1001"
+            const numericId = "1001";
+            peer = new Peer(numericId);
 
             peer.on('open', (id) => {
                 document.getElementById('my-peer-id').innerText = id;
                 
-                // Generowanie gotowego linku w formacie index.html?call=id
+                // Generowanie linku w formacie index.html?call=1001
                 const baseUrl = window.location.href.split('?')[0];
                 const shareLink = baseUrl + "?call=" + encodeURIComponent(id);
                 document.getElementById('share-link-input').value = shareLink;
 
-                // Automatyczne sprawdzenie, czy w adresie URL jest parametr ?call=...
+                // Automatyczne sprawdzenie parametru wywołania w adresie URL
                 checkUrlForIncomingCall(id);
             });
 
             peer.on('error', (err) => {
-                console.error("Błąd PeerJS:", err);
+                console.error("Błąd PeerJS (być może ID 1001 jest zajęte przez inną sesję):", err);
+                document.getElementById('my-peer-id').innerText = "Błąd: ID zajęte lub niedostępne";
             });
 
             navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -297,7 +299,7 @@
 
         function connectToPeer() {
             const destId = document.getElementById('peer-id-input').value.trim();
-            if (!destId) return alert("Wpisz ID odbiorcy!");
+            if (!destId) return alert("Wpisz numeryczne ID odbiorcy!");
 
             const call = peer.call(destId, localStream);
             call.on('stream', (remoteStream) => {
@@ -305,21 +307,18 @@
             });
         }
 
-        // Sprawdzanie parametrów w adresie URL i automatyczne dzwonienie
         function checkUrlForIncomingCall(myId) {
             const urlParams = new URLSearchParams(window.location.search);
             const callTarget = urlParams.get('call');
 
             if (callTarget && callTarget !== myId) {
                 document.getElementById('peer-id-input').value = callTarget;
-                // Krótkie opóźnienie, aby strumień lokalny zdążył się załadować
                 setTimeout(() => {
                     connectToPeer();
                 }, 1000);
             }
         }
 
-        // Kopiowanie linku do schowka
         function copyShareLink() {
             const linkInput = document.getElementById('share-link-input');
             linkInput.select();
