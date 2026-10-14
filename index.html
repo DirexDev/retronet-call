@@ -3,55 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RetroNet Call95</title>
+    <title>RetroNet Call10</title>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
         :root {
-            --win95-gray: #c0c0c0;
-            --win95-dark: #808080;
-            --win95-darker: #404040;
-            --win95-light: #dfdfdf;
-            --win95-white: #ffffff;
-            --win95-blue: #000080;
+            --win10-bg: #f0f0f0;
+            --win10-accent: #0078d7;
+            --win10-accent-hover: #106ebe;
+            --win10-border: #cccccc;
+            --win10-dark: #333333;
+            --win10-white: #ffffff;
+            --win10-gray-light: #e1e1e1;
+            --win10-gray-hover: #f5f5f5;
         }
 
         body {
-            font-family: 'MS Sans Serif', Tahoma, sans-serif;
-            background-color: #008080;
-            color: #000000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e1e;
+            color: var(--win10-dark);
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            font-size: 12px;
-            -webkit-font-smoothing: none;
+            font-size: 13px;
         }
 
         .hidden { display: none !important; }
 
-        .win95-box {
-            background-color: var(--win95-gray);
-            border-top: 2px solid var(--win95-white);
-            border-left: 2px solid var(--win95-white);
-            border-right: 2px solid var(--win95-darker);
-            border-bottom: 2px solid var(--win95-darker);
-            box-shadow: 1px 1px 0px 0px var(--win95-dark);
+        /* Styl Flat Windows 10 */
+        .win10-box {
+            background-color: var(--win10-white);
+            border: 1px solid var(--win10-border);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        .win95-inset {
-            background-color: var(--win95-white);
-            border-top: 2px solid var(--win95-darker);
-            border-left: 2px solid var(--win95-darker);
-            border-right: 2px solid var(--win95-light);
-            border-bottom: 2px solid var(--win95-light);
+        .win10-inset {
+            background-color: var(--win10-white);
+            border: 1px solid var(--win10-border);
+        }
+        .win10-inset:focus {
+            border-color: var(--win10-accent);
         }
 
         #auth-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 128, 128, 0.9);
+            background: rgba(30, 30, 30, 0.85);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -59,138 +58,146 @@
         }
 
         .auth-card {
-            width: 320px;
-            padding: 15px;
+            width: 340px;
+            padding: 24px;
         }
 
         .auth-header {
-            background-color: var(--win95-blue);
-            color: var(--win95-white);
-            padding: 3px 6px;
-            font-weight: bold;
-            margin-bottom: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--win10-dark);
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
         }
 
         input, button {
-            font-family: 'MS Sans Serif', Tahoma, sans-serif;
-            font-size: 12px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 13px;
             box-sizing: border-box;
             outline: none;
         }
 
         input {
             width: 100%;
-            padding: 4px 6px;
-            margin-bottom: 10px;
+            padding: 8px 10px;
+            margin-bottom: 12px;
+            border: 1px solid var(--win10-border);
+            transition: border-color 0.2s;
         }
 
         button {
-            background-color: var(--win95-gray);
-            padding: 6px 12px;
+            background-color: var(--win10-accent);
+            color: var(--win10-white);
+            border: none;
+            padding: 8px 16px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: var(--win10-accent-hover);
         }
         button:active {
-            border-top: 2px solid var(--win95-darker);
-            border-left: 2px solid var(--win95-darker);
-            border-right: 2px solid var(--win95-white);
-            border-bottom: 2px solid var(--win95-white);
-            padding: 7px 11px 5px 13px;
+            opacity: 0.9;
         }
 
         .app-container {
-            width: 900px;
-            height: 520px;
-            padding: 6px;
+            width: 920px;
+            height: 560px;
             display: flex;
-            gap: 6px;
+            overflow: hidden;
         }
 
         .sidebar {
-            width: 280px;
+            width: 300px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            border-right: 1px solid var(--win10-border);
+            background: #fafafa;
         }
 
         .user-status-box {
-            padding: 8px;
-            font-weight: bold;
+            padding: 12px;
+            font-weight: 600;
+            background: var(--win10-gray-light);
+            border-bottom: 1px solid var(--win10-border);
         }
 
         .contacts-container {
             flex: 1;
-            padding: 2px;
             overflow-y: auto;
         }
 
         .contact-item {
-            padding: 6px;
-            margin-bottom: 2px;
+            padding: 10px 12px;
             cursor: pointer;
-            background: var(--win95-gray);
+            border-bottom: 1px solid #eee;
+            background: var(--win10-white);
+            transition: background 0.1s;
         }
-        .contact-item:hover { background: #d0d0d0; }
+        .contact-item:hover { background: var(--win10-gray-hover); }
         .contact-item.active {
-            background: var(--win95-blue);
-            color: var(--win95-white);
+            background: var(--win10-accent);
+            color: var(--win10-white);
         }
 
         .main-panel {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            background: var(--win10-white);
         }
 
         .chat-toolbar {
-            padding: 4px;
+            padding: 10px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid var(--win10-border);
+            background: var(--win10-gray-light);
         }
 
         .messages-area {
             flex: 1;
-            padding: 6px;
+            padding: 16px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 8px;
+            background: #fdfdfd;
         }
 
         .message {
             max-width: 70%;
-            padding: 6px;
+            padding: 8px 12px;
             word-break: break-word;
+            border-radius: 4px;
         }
         .message.incoming {
-            background: var(--win95-gray);
-            border-top: 1px solid var(--win95-white);
-            border-left: 1px solid var(--win95-white);
-            border-right: 1px solid var(--win95-darker);
-            border-bottom: 1px solid var(--win95-darker);
+            background: var(--win10-gray-light);
             align-self: flex-start;
         }
         .message.outgoing {
-            background: #e0e0e0;
+            background: var(--win10-accent);
+            color: var(--win10-white);
             align-self: flex-end;
         }
 
         .chat-input-row {
             display: flex;
-            gap: 6px;
-            padding: 4px;
+            padding: 12px;
+            gap: 8px;
+            border-top: 1px solid var(--win10-border);
+            background: var(--win10-gray-light);
         }
         .chat-input-row input { margin-bottom: 0; }
 
         #call-modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.5);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -198,16 +205,17 @@
         }
 
         .call-window {
-            width: 600px;
-            padding: 6px;
+            width: 620px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 16px;
+            background: var(--win10-white);
         }
 
         .video-grid {
             display: flex;
-            gap: 8px;
+            gap: 16px;
             justify-content: center;
         }
 
@@ -215,6 +223,8 @@
             width: 280px;
             height: 210px;
             background: #000;
+            object-fit: cover;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -222,63 +232,63 @@
 
     <!-- EKRAN LOGOWANIA -->
     <div id="auth-screen">
-        <div class="win95-box auth-card">
+        <div class="win10-box auth-card">
             <div class="auth-header">
-                <span>💻 RetroNet Call95 - Logowanie</span>
+                <span>💻 RetroNet Call10</span>
             </div>
-            <div style="margin-bottom: 8px;">Wprowadź swoje dane systemowe:</div>
-            <input type="text" id="username-input" class="win95-inset" placeholder="Nazwa użytkownika">
-            <input type="tel" id="phone-input" class="win95-inset" placeholder="Numer identyfikacyjny (np. 1001)">
+            <div style="margin-bottom: 12px; color: #666;">Wprowadź swoje dane systemowe:</div>
+            <input type="text" id="username-input" class="win10-inset" placeholder="Nazwa użytkownika">
+            <input type="tel" id="phone-input" class="win10-inset" placeholder="Numer identyfikacyjny (np. 1001)">
             <button id="login-btn" style="width: 100%;">Połącz z siecią</button>
         </div>
     </div>
 
     <!-- GŁÓWNY INTERFEJS -->
-    <div class="win95-box app-container">
+    <div class="win10-box app-container">
         <div class="sidebar">
-            <div class="win95-inset user-status-box" id="user-profile-label">System offline</div>
-            <div style="padding: 4px; background: var(--win95-gray);">
-                <input type="tel" id="target-phone-input" class="win95-inset" placeholder="Dodaj numer ID..." style="margin-bottom: 4px;">
+            <div class="user-status-box" id="user-profile-label">System offline</div>
+            <div style="padding: 12px; background: var(--win10-gray-light); border-bottom: 1px solid var(--win10-border);">
+                <input type="tel" id="target-phone-input" class="win10-inset" placeholder="Dodaj numer ID..." style="margin-bottom: 8px;">
                 <button id="add-contact-btn" style="width: 100%;">+ Dodaj kontakt</button>
             </div>
-            <div class="win95-inset contacts-container" id="contacts-list"></div>
+            <div class="contacts-container" id="contacts-list"></div>
         </div>
 
         <div class="main-panel">
-            <div class="win95-box chat-toolbar">
-                <span id="current-chat-title" style="font-weight: bold; padding-left: 4px;">Wybierz kontakt</span>
-                <div style="display: flex; gap: 4px;">
+            <div class="chat-toolbar">
+                <span id="current-chat-title" style="font-weight: 600;">Wybierz kontakt</span>
+                <div style="display: flex; gap: 8px;">
                     <button id="voice-call-btn" class="hidden">📞 Głos</button>
                     <button id="video-call-btn" class="hidden">📹 Wideo</button>
                 </div>
             </div>
-            <div class="win95-inset messages-area" id="messages-box"></div>
-            <div class="win95-box chat-input-row">
-                <input type="text" id="message-input" class="win95-inset" placeholder="Napisz wiadomość...">
-                <button id="send-msg-btn" style="width: 80px;">Wyślij</button>
+            <div class="messages-area" id="messages-box"></div>
+            <div class="chat-input-row">
+                <input type="text" id="message-input" class="win10-inset" placeholder="Napisz wiadomość...">
+                <button id="send-msg-btn" style="width: 90px;">Wyślij</button>
             </div>
         </div>
     </div>
 
     <!-- MODAL ROZMOWY WIDEO/AUDIO -->
     <div id="call-modal" class="hidden">
-        <div class="win95-box call-window">
-            <div class="auth-header">
+        <div class="win10-box call-window">
+            <div class="auth-header" style="margin-bottom: 0;">
                 <span id="call-status-text">Połączenie systemowe...</span>
             </div>
             <div class="video-grid">
                 <div>
-                    <div style="margin-bottom: 2px;">Twój obraz</div>
-                    <video id="local-video" class="win95-inset" autoplay muted playsinline></video>
+                    <div style="margin-bottom: 4px; font-weight: 600;">Twój obraz</div>
+                    <video id="local-video" autoplay muted playsinline></video>
                 </div>
                 <div>
-                    <div style="margin-bottom: 2px;">Rozmówca</div>
-                    <video id="remote-video" class="win95-inset" autoplay playsinline></video>
+                    <div style="margin-bottom: 4px; font-weight: 600;">Rozmówca</div>
+                    <video id="remote-video" autoplay playsinline></video>
                 </div>
             </div>
-            <div style="display: flex; justify-content: flex-end; gap: 6px;">
-                <button id="accept-call-btn" class="hidden" style="width: 100px;">Odbierz</button>
-                <button id="end-call-btn" style="width: 100px;">Rozłącz</button>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button id="accept-call-btn" class="hidden" style="width: 110px;">Odbierz</button>
+                <button id="end-call-btn" style="background-color: #d83b01; width: 110px;">Rozłącz</button>
             </div>
         </div>
     </div>
@@ -340,7 +350,7 @@
             }
 
             myPhone = phone;
-            myPeerId = "net95_" + phone;
+            myPeerId = "net10_" + phone;
             initPeer();
         });
 
@@ -352,7 +362,7 @@
                 userProfileLabel.innerText = `Użytkownik: ${myName} (${myPhone})`;
 
                 if (paramId && paramType === 'call') {
-                    const targetPeerId = "net95_" + paramId;
+                    const targetPeerId = "net10_" + paramId;
                     if (targetPeerId !== myPeerId) {
                         addContactAndOpen(paramId);
                         setTimeout(() => {
@@ -388,7 +398,7 @@
         }
 
         function addContactAndOpen(phone) {
-            const targetId = "net95_" + phone;
+            const targetId = "net10_" + phone;
             if (!contacts[targetId]) {
                 contacts[targetId] = { name: "ID: " + phone, phone: phone, messages: [] };
                 renderContacts();
@@ -422,7 +432,7 @@
 
             conn.on('data', (data) => {
                 if (!contacts[conn.peer]) {
-                    contacts[conn.peer] = { name: "ID: " + conn.peer.replace("net95_", ""), phone: "", messages: [] };
+                    contacts[conn.peer] = { name: "ID: " + conn.peer.replace("net10_", ""), phone: "", messages: [] };
                     renderContacts();
                 }
                 contacts[conn.peer].messages.push({ sender: 'incoming', text: data.text });
@@ -435,7 +445,7 @@
         function setupIncomingConnection(conn) {
             setupDataConnection(conn);
             if (!contacts[conn.peer]) {
-                contacts[conn.peer] = { name: "ID: " + conn.peer.replace("net95_", ""), phone: "", messages: [] };
+                contacts[conn.peer] = { name: "ID: " + conn.peer.replace("net10_", ""), phone: "", messages: [] };
                 renderContacts();
             }
         }
@@ -493,7 +503,6 @@
             if (!currentTargetId) return;
             const targetPhone = contacts[currentTargetId].phone;
             
-            // Poprawna obsługa ścieżki projektu na GitHub Pages (zachowuje bazową ścieżkę /retronet-call/)
             const basePath = window.location.pathname;
             const newUrl = `${basePath}?type=call&id=${targetPhone}`;
             window.history.pushState({path: newUrl}, '', newUrl);
