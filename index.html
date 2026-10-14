@@ -33,10 +33,6 @@
             color: #000; font-size: 15px; outline: none; transition: background 0.2s;
         }
         .metro-input:focus { background: #fff; box-shadow: inset 0 0 0 2px #fff; }
-        .domain-suffix {
-            position: absolute; right: 10px; font-size: 11px; color: #666; pointer-events: none;
-            background: rgba(255,255,255,0.8); padding: 2px 4px;
-        }
         .metro-btn {
             background: #005a9e; color: white; border: none; padding: 12px 20px;
             font-size: 16px; cursor: pointer; width: 100%; font-weight: 600;
@@ -126,19 +122,21 @@
     </div>
 
     <script>
-        // Konfiguracja Firebase (skopiowana z Twojego projektu)
+        // Prawidłowa konfiguracja Firebase dla projektu retronetcall
         const firebaseConfig = {
-            apiKey: "TWOJ_API_KEY",
+            apiKey: "AIzaSyB7Q9TSXa4CQc2nSiUhS044wD463jBHpr0",
             authDomain: "retronetcall.firebaseapp.com",
             projectId: "retronetcall",
-            storageBucket: "retronetcall.appspot.com",
-            messagingSenderId: "TWOJ_MESSAGING_SENDER_ID",
-            appId: "TWOJ_APP_ID"
+            storageBucket: "retronetcall.firebasestorage.app",
+            messagingSenderId: "820407833858",
+            appId: "1:820407833858:web:e4e1cc71f364955b3bde1b",
+            measurementId: "G-E8LEFTF2KN"
         };
 
-        // Inicjalizacja Firebase
+        // Inicjalizacja Firebase z trwałą sesją (zostaje zalogowany)
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
         const SUFFIX = "@directdev.github.io/retronet-call/index.html?=auth";
 
@@ -154,7 +152,6 @@
                 return;
             }
 
-            // Automatyczne doklejenie Twojej docelowej końcówki
             const fullEmail = usernameInput.includes('@') ? usernameInput : usernameInput + SUFFIX;
 
             if (type === 'register') {
@@ -192,12 +189,11 @@
             });
         }
 
-        // Inicjalizacja PeerJS do wideo-rozmów
+        // Inicjalizacja PeerJS do wideo-rozmów / P2P
         let peer;
         let localStream;
 
         function initPeerJS(username) {
-            // Używamy nazwy użytkownika jako bezpiecznego ID w PeerJS
             peer = new Peer(username.replace(/[^a-zA-Z0-9]/g, '_'));
 
             peer.on('open', (id) => {
@@ -208,7 +204,6 @@
                 console.error("Błąd PeerJS:", err);
             });
 
-            // Pobranie strumienia kamery/mikrofonu
             navigator.mediaDevices.getUserMedia({ video: true, audio: true })
                 .then((stream) => {
                     localStream = stream;
@@ -218,7 +213,6 @@
                     console.warn("Brak dostępu do kamery/mikrofonu:", err);
                 });
 
-            // Odbieranie połączeń przychodzących
             peer.on('call', (call) => {
                 call.answer(localStream);
                 call.on('stream', (remoteStream) => {
@@ -237,7 +231,7 @@
             });
         }
 
-        // Automatyczne sprawdzenie czy użytkownik już jest zalogowany
+        // Automatyczne sprawdzenie sesji (zalogowany raz – pamięta użytkownika)
         auth.onAuthStateChanged((user) => {
             if (user) {
                 const cleanName = user.email.split('@')[0];
