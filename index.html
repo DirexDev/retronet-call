@@ -13,7 +13,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #1b1b1b; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
-        /* Ekran logowania/rejestracji w stylu Win8 / Google */
+        /* Ekran logowania/rejestracji w stylu Win8 / Flat Metro */
         #auth-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #007acc; display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -44,7 +44,7 @@
         .metro-btn {
             background: #005a9e; color: white; border: none; padding: 12px 20px;
             font-size: 15px; cursor: pointer; width: 100%; font-weight: 600;
-            transition: background 0.2s; margin-top: 10px;
+            transition: background 0.2s; margin-top: 10px; border-radius: 0px;
         }
         .metro-btn:hover { background: #004578; }
         .metro-btn.secondary { background: #2d2d2d; margin-top: 5px; }
@@ -53,7 +53,7 @@
         .error-msg { color: #ffb3b3; font-size: 13px; margin-top: 15px; text-align: center; }
         .success-msg { color: #b3ffb3; font-size: 13px; margin-top: 15px; text-align: center; }
 
-        /* Główny interfejs aplikacji (Metro UI) */
+        /* Główny interfejs aplikacji (Win8 Metro) */
         #app-screen { display: none; height: 100%; flex-direction: column; background: #005a9e; }
         header { background: rgba(0,0,0,0.3); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
         header h2 { font-weight: 300; font-size: 22px; }
@@ -62,21 +62,35 @@
         .logout-btn:hover { background: rgba(255,255,255,0.2); }
 
         .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; overflow: hidden; }
-        .tile-panel { flex: 1; background: rgba(0,0,0,0.2); padding: 25px; display: flex; flex-direction: column; gap: 15px; }
-        .tile-panel h3 { font-weight: 400; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px; }
+        .tile-panel { flex: 1; background: rgba(0,0,0,0.2); padding: 25px; display: flex; flex-direction: column; gap: 15px; border: 1px solid rgba(255,255,255,0.1); }
+        .tile-panel h3 { font-weight: 300; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px; }
         
+        .id-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px 15px;
+            border-left: 4px solid #61dafb;
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .link-row { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+        .link-input { flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 10px; font-size: 12px; outline: none; }
+        .copy-btn { background: #005a9e; color: #fff; border: none; padding: 6px 12px; font-size: 12px; cursor: pointer; font-weight: 600; }
+        .copy-btn:hover { background: #004578; }
+
         .video-container { display: flex; gap: 15px; flex: 1; }
         .video-box { flex: 1; background: #000; display: flex; justify-content: center; align-items: center; position: relative; border: 2px solid rgba(255,255,255,0.1); }
         video { width: 100%; height: 100%; object-fit: cover; }
         .video-label { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 3px 8px; font-size: 12px; }
 
-        .controls { display: flex; gap: 10px; margin-top: 10px; }
-        .control-input { flex: 1; padding: 10px; border: none; font-size: 14px; }
+        .controls { display: flex; gap: 10px; margin-top: 5px; }
+        .control-input { flex: 1; padding: 10px; border: none; font-size: 14px; background: rgba(255,255,255,0.95); outline: none; }
     </style>
 </head>
 <body>
 
-    <!-- Ekran logowania/rejestracji (Windows 8 Metro / Kreator Konta) -->
+    <!-- Ekran logowania/rejestracji -->
     <div id="auth-screen">
         <div class="metro-box">
             <h1 id="auth-title">RetroNet ID</h1>
@@ -113,16 +127,26 @@
             </div>
         </header>
 
-        <div class="main-container">
+        <main class="main-container">
             <div class="tile-panel" style="flex: 2;">
                 <h3>Komunikacja P2P (Wideo / Czat)</h3>
-                <div style="font-size: 13px; background: rgba(0,0,0,0.2); padding: 10px;">
-                    Twój oficjalny identyfikator w sieci: <strong id="my-peer-id" style="color: #61dafb;">Łączenie...</strong>
+                
+                <!-- Panel pokazujący adres, ID oraz gotowy link do połączenia -->
+                <div class="id-card">
+                    <div>Adres sieciowy: <strong id="my-full-address" style="color: #61dafb;">Łączenie...</strong></div>
+                    <div>Kryptograficzne ID węzła: <strong id="my-peer-id" style="color: #61dafb; font-family: Consolas, monospace;">Oczekiwanie...</strong></div>
+                    <div style="margin-top: 4px;">Link do szybkiego połączenia:</div>
+                    <div class="link-row">
+                        <input type="text" id="share-link-input" class="link-input" readonly value="Generowanie linku...">
+                        <button class="copy-btn" onclick="copyShareLink()">Kopiuj link</button>
+                    </div>
                 </div>
+
                 <div class="controls">
                     <input type="text" id="peer-id-input" class="control-input" placeholder="Wpisz ID znajomego, aby zadzwonić">
                     <button class="metro-btn" style="margin: 0; width: auto; padding: 0 20px;" onclick="connectToPeer()">Zadzwoń</button>
                 </div>
+                
                 <div class="video-container">
                     <div class="video-box">
                         <video id="local-video" autoplay muted></video>
@@ -134,11 +158,10 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
 
     <script>
-        // Konfiguracja Firebase dla projektu retronetcall
         const firebaseConfig = {
             apiKey: "AIzaSyB7Q9TSXa4CQc2nSiUhS044wD463jBHpr0",
             authDomain: "retronetcall.firebaseapp.com",
@@ -149,16 +172,13 @@
             measurementId: "G-E8LEFTF2KN"
         };
 
-        // Inicjalizacja Firebase z trwałą sesją
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-        // Oficjalna domena kont w systemie
         const SUFFIX = "@retronet.call";
         let isRegisterMode = false;
 
-        // Przełączanie między logowaniem a rejestracją w stylu kreatora
         function toggleMode() {
             isRegisterMode = !isRegisterMode;
             const title = document.getElementById('auth-title');
@@ -182,7 +202,6 @@
             }
         }
 
-        // Obsługa uwierzytelniania
         function handleAuth(type) {
             const usernameInput = document.getElementById('username-input').value.trim().toLowerCase();
             const password = document.getElementById('password-input').value;
@@ -197,12 +216,11 @@
                 return;
             }
 
-            // Automatyczne dodanie końcówki @retronet.call w pełni poprawnej dla Firebase
             const fullEmail = usernameInput.includes('@') ? usernameInput : usernameInput + SUFFIX;
 
             if (isRegisterMode) {
                 auth.createUserWithEmailAndPassword(fullEmail, password)
-                    .then((userCredential) => {
+                    .then(() => {
                         successDiv.innerText = "Konto utworzono pomyślnie! Logowanie...";
                         setTimeout(() => onLoginSuccess(usernameInput), 800);
                     })
@@ -211,7 +229,7 @@
                     });
             } else {
                 auth.signInWithEmailAndPassword(fullEmail, password)
-                    .then((userCredential) => {
+                    .then(() => {
                         onLoginSuccess(usernameInput);
                     })
                     .catch((error) => {
@@ -226,6 +244,7 @@
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('app-screen').style.display = 'flex';
                 document.getElementById('current-user-display').innerText = "Konto: " + username + "@retronet.call";
+                document.getElementById('my-full-address').innerText = username + "@retronet.call";
                 initPeerJS(username);
             }, 500);
         }
@@ -236,15 +255,23 @@
             });
         }
 
-        // Inicjalizacja PeerJS do połączeń P2P
         let peer;
         let localStream;
 
         function initPeerJS(username) {
-            peer = new Peer(username.replace(/[^a-zA-Z0-9]/g, '_'));
+            const cleanId = "rn_node_" + username.replace(/[^a-zA-Z0-9]/g, '_');
+            peer = new Peer(cleanId);
 
             peer.on('open', (id) => {
-                document.getElementById('my-peer-id').innerText = id + " (@retronet.call)";
+                document.getElementById('my-peer-id').innerText = id;
+                
+                // Generowanie gotowego linku w formacie index.html?call=id
+                const baseUrl = window.location.href.split('?')[0];
+                const shareLink = baseUrl + "?call=" + encodeURIComponent(id);
+                document.getElementById('share-link-input').value = shareLink;
+
+                // Automatyczne sprawdzenie, czy w adresie URL jest parametr ?call=...
+                checkUrlForIncomingCall(id);
             });
 
             peer.on('error', (err) => {
@@ -278,7 +305,29 @@
             });
         }
 
-        // Automatyczne odświeżenie sesji (zostaje zalogowany na stałe)
+        // Sprawdzanie parametrów w adresie URL i automatyczne dzwonienie
+        function checkUrlForIncomingCall(myId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const callTarget = urlParams.get('call');
+
+            if (callTarget && callTarget !== myId) {
+                document.getElementById('peer-id-input').value = callTarget;
+                // Krótkie opóźnienie, aby strumień lokalny zdążył się załadować
+                setTimeout(() => {
+                    connectToPeer();
+                }, 1000);
+            }
+        }
+
+        // Kopiowanie linku do schowka
+        function copyShareLink() {
+            const linkInput = document.getElementById('share-link-input');
+            linkInput.select();
+            linkInput.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(linkInput.value);
+            alert("Skopiowano link do schowka!");
+        }
+
         auth.onAuthStateChanged((user) => {
             if (user) {
                 const cleanName = user.email.split('@')[0];
