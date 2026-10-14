@@ -1,1065 +1,249 @@
 <!DOCTYPE html>
-
 <html lang="pl">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>RetroNet Call95</title>
-
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-
+    <title>RetroNet Call - Windows 8 Metro</title>
+    <!-- Firebase SDK (v9 Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- PeerJS -->
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
-
-        :root {
-
-            --win95-gray: #c0c0c0;
-
-            --win95-dark: #808080;
-
-            --win95-darker: #404040;
-
-            --win95-light: #dfdfdf;
-
-            --win95-white: #ffffff;
-
-            --win95-blue: #000080;
-
-        }
-
-
-
-        body {
-
-            font-family: 'MS Sans Serif', Tahoma, sans-serif;
-
-            background-color: #008080;
-
-            color: #000000;
-
-            margin: 0;
-
-            padding: 0;
-
-            display: flex;
-
-            justify-content: center;
-
-            align-items: center;
-
-            height: 100vh;
-
-            font-size: 12px;
-
-            -webkit-font-smoothing: none;
-
-        }
-
-
-
-        .hidden { display: none !important; }
-
-
-
-        .win95-box {
-
-            background-color: var(--win95-gray);
-
-            border-top: 2px solid var(--win95-white);
-
-            border-left: 2px solid var(--win95-white);
-
-            border-right: 2px solid var(--win95-darker);
-
-            border-bottom: 2px solid var(--win95-darker);
-
-            box-shadow: 1px 1px 0px 0px var(--win95-dark);
-
-        }
-
-
-
-        .win95-inset {
-
-            background-color: var(--win95-white);
-
-            border-top: 2px solid var(--win95-darker);
-
-            border-left: 2px solid var(--win95-darker);
-
-            border-right: 2px solid var(--win95-light);
-
-            border-bottom: 2px solid var(--win95-light);
-
-        }
-
-
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #1b1b1b; color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        /* Ekran logowania w stylu Win8 */
         #auth-screen {
-
-            position: fixed;
-
-            top: 0; left: 0; width: 100%; height: 100%;
-
-            background: rgba(0, 128, 128, 0.9);
-
-            display: flex;
-
-            justify-content: center;
-
-            align-items: center;
-
-            z-index: 100;
-
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #007acc; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 100; transition: opacity 0.5s ease;
         }
-
-
-
-        .auth-card {
-
-            width: 320px;
-
-            padding: 15px;
-
+        .metro-box {
+            background: rgba(0, 0, 0, 0.4); padding: 40px; border-radius: 0px;
+            width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.1);
         }
-
-
-
-        .auth-header {
-
-            background-color: var(--win95-blue);
-
-            color: var(--win95-white);
-
-            padding: 3px 6px;
-
-            font-weight: bold;
-
-            margin-bottom: 12px;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 5px;
-
+        .metro-box h1 { font-weight: 300; font-size: 28px; margin-bottom: 25px; color: #ffffff; }
+        .input-group { margin-bottom: 20px; position: relative; }
+        .input-group label { display: block; font-size: 13px; margin-bottom: 8px; color: #ccc; }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .metro-input {
+            width: 100%; padding: 12px; background: rgba(255,255,255,0.9); border: none;
+            color: #000; font-size: 15px; outline: none; transition: background 0.2s;
         }
-
-
-
-        input, button {
-
-            font-family: 'MS Sans Serif', Tahoma, sans-serif;
-
-            font-size: 12px;
-
-            box-sizing: border-box;
-
-            outline: none;
-
+        .metro-input:focus { background: #fff; box-shadow: inset 0 0 0 2px #fff; }
+        .domain-suffix {
+            position: absolute; right: 10px; font-size: 11px; color: #666; pointer-events: none;
+            background: rgba(255,255,255,0.8); padding: 2px 4px;
         }
-
-
-
-        input {
-
-            width: 100%;
-
-            padding: 4px 6px;
-
-            margin-bottom: 10px;
-
+        .metro-btn {
+            background: #005a9e; color: white; border: none; padding: 12px 20px;
+            font-size: 16px; cursor: pointer; width: 100%; font-weight: 600;
+            transition: background 0.2s; margin-top: 10px;
         }
-
-
-
-        button {
-
-            background-color: var(--win95-gray);
-
-            padding: 6px 12px;
-
-            cursor: pointer;
-
-            font-weight: bold;
-
-        }
-
-        button:active {
-
-            border-top: 2px solid var(--win95-darker);
-
-            border-left: 2px solid var(--win95-darker);
-
-            border-right: 2px solid var(--win95-white);
-
-            border-bottom: 2px solid var(--win95-white);
-
-            padding: 7px 11px 5px 13px;
-
-        }
-
-
-
-        .app-container {
-
-            width: 900px;
-
-            height: 520px;
-
-            padding: 6px;
-
-            display: flex;
-
-            gap: 6px;
-
-        }
-
-
-
-        .sidebar {
-
-            width: 280px;
-
-            display: flex;
-
-            flex-direction: column;
-
-            gap: 6px;
-
-        }
-
-
-
-        .user-status-box {
-
-            padding: 8px;
-
-            font-weight: bold;
-
-        }
-
-
-
-        .contacts-container {
-
-            flex: 1;
-
-            padding: 2px;
-
-            overflow-y: auto;
-
-        }
-
-
-
-        .contact-item {
-
-            padding: 6px;
-
-            margin-bottom: 2px;
-
-            cursor: pointer;
-
-            background: var(--win95-gray);
-
-        }
-
-        .contact-item:hover { background: #d0d0d0; }
-
-        .contact-item.active {
-
-            background: var(--win95-blue);
-
-            color: var(--win95-white);
-
-        }
-
-
-
-        .main-panel {
-
-            flex: 1;
-
-            display: flex;
-
-            flex-direction: column;
-
-            gap: 6px;
-
-        }
-
-
-
-        .chat-toolbar {
-
-            padding: 4px;
-
-            display: flex;
-
-            justify-content: space-between;
-
-            align-items: center;
-
-        }
-
-
-
-        .messages-area {
-
-            flex: 1;
-
-            padding: 6px;
-
-            overflow-y: auto;
-
-            display: flex;
-
-            flex-direction: column;
-
-            gap: 4px;
-
-        }
-
-
-
-        .message {
-
-            max-width: 70%;
-
-            padding: 6px;
-
-            word-break: break-word;
-
-        }
-
-        .message.incoming {
-
-            background: var(--win95-gray);
-
-            border-top: 1px solid var(--win95-white);
-
-            border-left: 1px solid var(--win95-white);
-
-            border-right: 1px solid var(--win95-darker);
-
-            border-bottom: 1px solid var(--win95-darker);
-
-            align-self: flex-start;
-
-        }
-
-        .message.outgoing {
-
-            background: #e0e0e0;
-
-            align-self: flex-end;
-
-        }
-
-
-
-        .chat-input-row {
-
-            display: flex;
-
-            gap: 6px;
-
-            padding: 4px;
-
-        }
-
-        .chat-input-row input { margin-bottom: 0; }
-
-
-
-        #call-modal {
-
-            position: fixed;
-
-            top: 0; left: 0; width: 100%; height: 100%;
-
-            background: rgba(0, 0, 0, 0.4);
-
-            display: flex;
-
-            justify-content: center;
-
-            align-items: center;
-
-            z-index: 200;
-
-        }
-
-
-
-        .call-window {
-
-            width: 600px;
-
-            padding: 6px;
-
-            display: flex;
-
-            flex-direction: column;
-
-            gap: 8px;
-
-        }
-
-
-
-        .video-grid {
-
-            display: flex;
-
-            gap: 8px;
-
-            justify-content: center;
-
-        }
-
-
-
-        video {
-
-            width: 280px;
-
-            height: 210px;
-
-            background: #000;
-
-        }
-
+        .metro-btn:hover { background: #004578; }
+        .error-msg { color: #ffb3b3; font-size: 13px; margin-top: 15px; text-align: center; }
+
+        /* Główny interfejs aplikacji (Metro UI) */
+        #app-screen { display: none; height: 100%; flex-direction: column; background: #005a9e; }
+        header { background: rgba(0,0,0,0.3); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        header h2 { font-weight: 300; font-size: 22px; }
+        .user-info { font-size: 14px; display: flex; gap: 15px; align-items: center; }
+        .logout-btn { background: transparent; border: 1px solid #fff; color: #fff; padding: 5px 12px; cursor: pointer; }
+        .logout-btn:hover { background: rgba(255,255,255,0.2); }
+
+        .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; overflow: hidden; }
+        .tile-panel { flex: 1; background: rgba(0,0,0,0.2); padding: 25px; display: flex; flex-direction: column; gap: 15px; }
+        .tile-panel h3 { font-weight: 400; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px; }
+        
+        /* Sekcja wideo / połączeń */
+        .video-container { display: flex; gap: 15px; flex: 1; }
+        .video-box { flex: 1; background: #000; display: flex; justify-content: center; align-items: center; position: relative; border: 2px solid rgba(255,255,255,0.1); }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        .video-label { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 3px 8px; font-size: 12px; }
+
+        .controls { display: flex; gap: 10px; margin-top: 10px; }
+        .control-input { flex: 1; padding: 10px; border: none; font-size: 14px; }
     </style>
-
 </head>
-
 <body>
 
-
-
-    <!-- EKRAN LOGOWANIA -->
-
+    <!-- Ekran logowania/rejestracji (Windows 8 Style) -->
     <div id="auth-screen">
-
-        <div class="win95-box auth-card">
-
-            <div class="auth-header">
-
-                <span>💻 RetroNet Call95 - Logowanie</span>
-
+        <div class="metro-box">
+            <h1>RetroNet Sign In</h1>
+            <div class="input-group">
+                <label>Nazwa użytkownika (Login)</label>
+                <div class="input-wrapper">
+                    <input type="text" id="username-input" class="metro-input" placeholder="np. karol">
+                </div>
+                <span style="font-size: 10px; color: #ddd; margin-top: 4px; display: block;">System automatycznie doklei końcówkę do Firebase.</span>
             </div>
-
-            <div style="margin-bottom: 8px;">Wprowadź swoje dane systemowe:</div>
-
-            <input type="text" id="username-input" class="win95-inset" placeholder="Nazwa użytkownika">
-
-            <input type="tel" id="phone-input" class="win95-inset" placeholder="Numer identyfikacyjny (np. 1001)">
-
-            <button id="login-btn" style="width: 100%;">Połącz z siecią</button>
-
+            <div class="input-group">
+                <label>Hasło</label>
+                <input type="password" id="password-input" class="metro-input" placeholder="••••••••">
+            </div>
+            <button class="metro-btn" onclick="handleAuth('login')">Zaloguj się</button>
+            <button class="metro-btn" style="background: #2d2d2d; margin-top: 5px;" onclick="handleAuth('register')">Zarejestruj konto</button>
+            <div id="auth-error" class="error-msg"></div>
         </div>
-
     </div>
 
-
-
-    <!-- GŁÓWNY INTERFEJS -->
-
-    <div class="win95-box app-container">
-
-        <div class="sidebar">
-
-            <div class="win95-inset user-status-box" id="user-profile-label">System offline</div>
-
-            <div style="padding: 4px; background: var(--win95-gray);">
-
-                <input type="tel" id="target-phone-input" class="win95-inset" placeholder="Dodaj numer ID..." style="margin-bottom: 4px;">
-
-                <button id="add-contact-btn" style="width: 100%;">+ Dodaj kontakt</button>
-
+    <!-- Ekran główny aplikacji -->
+    <div id="app-screen">
+        <header>
+            <h2>RetroNet Call <span style="font-size: 12px; opacity: 0.7;">(Windows 8 Metro)</span></h2>
+            <div class="user-info">
+                <span id="current-user-display">Zalogowany</span>
+                <button class="logout-btn" onclick="logout()">Wyloguj</button>
             </div>
+        </header>
 
-            <div class="win95-inset contacts-container" id="contacts-list"></div>
-
-        </div>
-
-
-
-        <div class="main-panel">
-
-            <div class="win95-box chat-toolbar">
-
-                <span id="current-chat-title" style="font-weight: bold; padding-left: 4px;">Wybierz kontakt</span>
-
-                <div style="display: flex; gap: 4px;">
-
-                    <button id="voice-call-btn" class="hidden">📞 Głos</button>
-
-                    <button id="video-call-btn" class="hidden">📹 Wideo</button>
-
+        <div class="main-container">
+            <!-- Panel połączeń PeerJS -->
+            <div class="tile-panel" style="flex: 2;">
+                <h3>Komunikacja P2P (Wideo / Czat)</h3>
+                <div style="font-size: 13px; background: rgba(0,0,0,0.2); padding: 10px;">
+                    Twój identyfikator połączenia: <strong id="my-peer-id" style="color: #61dafb;">Łączenie...</strong>
                 </div>
-
+                <div class="controls">
+                    <input type="text" id="peer-id-input" class="control-input" placeholder="Wpisz ID znajomego, aby zadzwonić">
+                    <button class="metro-btn" style="margin: 0; width: auto; padding: 0 20px;" onclick="connectToPeer()">Zadzwoń</button>
+                </div>
+                <div class="video-container">
+                    <div class="video-box">
+                        <video id="local-video" autoplay muted></video>
+                        <div class="video-label">Ty</div>
+                    </div>
+                    <div class="video-box">
+                        <video id="remote-video" autoplay></video>
+                        <div class="video-label">Rozmówca</div>
+                    </div>
+                </div>
             </div>
-
-            <div class="win95-inset messages-area" id="messages-box"></div>
-
-            <div class="win95-box chat-input-row">
-
-                <input type="text" id="message-input" class="win95-inset" placeholder="Napisz wiadomość...">
-
-                <button id="send-msg-btn" style="width: 80px;">Wyślij</button>
-
-            </div>
-
         </div>
-
     </div>
-
-
-
-    <!-- MODAL ROZMOWY WIDEO/AUDIO -->
-
-    <div id="call-modal" class="hidden">
-
-        <div class="win95-box call-window">
-
-            <div class="auth-header">
-
-                <span id="call-status-text">Połączenie systemowe...</span>
-
-            </div>
-
-            <div class="video-grid">
-
-                <div>
-
-                    <div style="margin-bottom: 2px;">Twój obraz</div>
-
-                    <video id="local-video" class="win95-inset" autoplay muted playsinline></video>
-
-                </div>
-
-                <div>
-
-                    <div style="margin-bottom: 2px;">Rozmówca</div>
-
-                    <video id="remote-video" class="win95-inset" autoplay playsinline></video>
-
-                </div>
-
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 6px;">
-
-                <button id="accept-call-btn" class="hidden" style="width: 100px;">Odbierz</button>
-
-                <button id="end-call-btn" style="width: 100px;">Rozłącz</button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
 
     <script>
+        // Konfiguracja Firebase (skopiowana z Twojego projektu)
+        const firebaseConfig = {
+            apiKey: "TWOJ_API_KEY",
+            authDomain: "retronetcall.firebaseapp.com",
+            projectId: "retronetcall",
+            storageBucket: "retronetcall.appspot.com",
+            messagingSenderId: "TWOJ_MESSAGING_SENDER_ID",
+            appId: "TWOJ_APP_ID"
+        };
 
-        let myPhone = '';
+        // Inicjalizacja Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
 
-        let myName = '';
+        const SUFFIX = "@directdev.github.io/retronet-call/index.html?=auth";
 
-        let myPeerId = '';
+        // Obsługa uwierzytelniania
+        function handleAuth(type) {
+            const usernameInput = document.getElementById('username-input').value.trim();
+            const password = document.getElementById('password-input').value;
+            const errorDiv = document.getElementById('auth-error');
+            errorDiv.innerText = "";
 
-        let peer = null;
-
-        let localStream = null;
-
-        
-
-        const activeConnections = {};
-
-        let activeCall = null;
-
-        let currentTargetId = null;
-
-        const contacts = {};
-
-
-
-        const urlParams = new URLSearchParams(window.location.search);
-
-        const paramType = urlParams.get('type');
-
-        const paramId = urlParams.get('id');
-
-
-
-        const authScreen = document.getElementById('auth-screen');
-
-        const usernameInput = document.getElementById('username-input');
-
-        const phoneInput = document.getElementById('phone-input');
-
-        const loginBtn = document.getElementById('login-btn');
-
-        const userProfileLabel = document.getElementById('user-profile-label');
-
-        
-
-        const targetPhoneInput = document.getElementById('target-phone-input');
-
-        const addContactBtn = document.getElementById('add-contact-btn');
-
-        const contactsList = document.getElementById('contacts-list');
-
-        
-
-        const currentChatTitle = document.getElementById('current-chat-title');
-
-        const messagesBox = document.getElementById('messages-box');
-
-        const messageInput = document.getElementById('message-input');
-
-        const sendMsgBtn = document.getElementById('send-msg-btn');
-
-        
-
-        const voiceCallBtn = document.getElementById('voice-call-btn');
-
-        const videoCallBtn = document.getElementById('video-call-btn');
-
-        const callModal = document.getElementById('call-modal');
-
-        const callStatusText = document.getElementById('call-status-text');
-
-        const localVideo = document.getElementById('local-video');
-
-        const remoteVideo = document.getElementById('remote-video');
-
-        const endCallBtn = document.getElementById('end-call-btn');
-
-        const acceptCallBtn = document.getElementById('accept-call-btn');
-
-
-
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-
-            .then(stream => {
-
-                localStream = stream;
-
-                localVideo.srcObject = stream;
-
-            })
-
-            .catch(err => console.warn("Brak uprawnień do mediów:", err));
-
-
-
-        loginBtn.addEventListener('click', () => {
-
-            myName = usernameInput.value.trim();
-
-            const phone = phoneInput.value.trim().replace(/[^0-9]/g, '');
-
-
-
-            if (!myName || phone.length < 3) {
-
-                alert("Wpisz poprawne dane systemowe!");
-
+            if (!usernameInput || !password) {
+                errorDiv.innerText = "Wypełnij nazwę użytkownika oraz hasło!";
                 return;
-
             }
 
+            // Automatyczne doklejenie Twojej docelowej końcówki
+            const fullEmail = usernameInput.includes('@') ? usernameInput : usernameInput + SUFFIX;
 
+            if (type === 'register') {
+                auth.createUserWithEmailAndPassword(fullEmail, password)
+                    .then((userCredential) => {
+                        onLoginSuccess(usernameInput);
+                    })
+                    .catch((error) => {
+                        errorDiv.innerText = "Błąd rejestracji: " + error.message;
+                    });
+            } else {
+                auth.signInWithEmailAndPassword(fullEmail, password)
+                    .then((userCredential) => {
+                        onLoginSuccess(usernameInput);
+                    })
+                    .catch((error) => {
+                        errorDiv.innerText = "Błąd logowania: " + error.message;
+                    });
+            }
+        }
 
-            myPhone = phone;
+        function onLoginSuccess(username) {
+            document.getElementById('auth-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('app-screen').style.display = 'flex';
+                document.getElementById('current-user-display').innerText = "Użytkownik: " + username;
+                initPeerJS(username);
+            }, 500);
+        }
 
-            myPeerId = "net95_" + phone;
+        function logout() {
+            auth.signOut().then(() => {
+                window.location.reload();
+            });
+        }
 
-            initPeer();
+        // Inicjalizacja PeerJS do wideo-rozmów
+        let peer;
+        let localStream;
 
-        });
-
-
-
-        function initPeer() {
-
-            peer = new Peer(myPeerId);
-
-
+        function initPeerJS(username) {
+            // Używamy nazwy użytkownika jako bezpiecznego ID w PeerJS
+            peer = new Peer(username.replace(/[^a-zA-Z0-9]/g, '_'));
 
             peer.on('open', (id) => {
-
-                authScreen.classList.add('hidden');
-
-                userProfileLabel.innerText = `Użytkownik: ${myName} (${myPhone})`;
-
-
-
-                if (paramId && paramType === 'call') {
-
-                    const targetPeerId = "net95_" + paramId;
-
-                    if (targetPeerId !== myPeerId) {
-
-                        addContactAndOpen(paramId);
-
-                        setTimeout(() => {
-
-                            callModal.classList.remove('hidden');
-
-                            callStatusText.innerText = `Zapytanie od: ${paramId}`;
-
-                            acceptCallBtn.classList.remove('hidden');
-
-                            
-
-                            acceptCallBtn.onclick = () => {
-
-                                acceptCallBtn.classList.add('hidden');
-
-                                callStatusText.innerText = "Inicjalizowanie łącza...";
-
-                                const call = peer.call(targetPeerId, localStream);
-
-                                setupCallEvents(call);
-
-                            };
-
-                        }, 500);
-
-                    }
-
-                }
-
+                document.getElementById('my-peer-id').innerText = id;
             });
 
-
-
-            peer.on('error', (err) => alert("Błąd sieci: " + err.type));
-
-            peer.on('connection', (conn) => setupIncomingConnection(conn));
-
-            
-
-            peer.on('call', (incomingCall) => {
-
-                callModal.classList.remove('hidden');
-
-                callStatusText.innerText = "Przychodzące połączenie sieciowe...";
-
-                acceptCallBtn.classList.remove('hidden');
-
-                
-
-                acceptCallBtn.onclick = () => {
-
-                    acceptCallBtn.classList.add('hidden');
-
-                    incomingCall.answer(localStream);
-
-                    setupCallEvents(incomingCall);
-
-                };
-
+            peer.on('error', (err) => {
+                console.error("Błąd PeerJS:", err);
             });
 
-        }
+            // Pobranie strumienia kamery/mikrofonu
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then((stream) => {
+                    localStream = stream;
+                    document.getElementById('local-video').srcObject = stream;
+                })
+                .catch((err) => {
+                    console.warn("Brak dostępu do kamery/mikrofonu:", err);
+                });
 
-
-
-        function addContactAndOpen(phone) {
-
-            const targetId = "net95_" + phone;
-
-            if (!contacts[targetId]) {
-
-                contacts[targetId] = { name: "ID: " + phone, phone: phone, messages: [] };
-
-                renderContacts();
-
-            }
-
-            selectContact(targetId);
-
-        }
-
-
-
-        addContactBtn.addEventListener('click', () => {
-
-            const phone = targetPhoneInput.value.trim().replace(/[^0-9]/g, '');
-
-            if (!phone) return;
-
-            addContactAndOpen(phone);
-
-            targetPhoneInput.value = '';
-
-        });
-
-
-
-        function selectContact(peerId) {
-
-            currentTargetId = peerId;
-
-            currentChatTitle.innerText = contacts[peerId].name;
-
-            voiceCallBtn.classList.remove('hidden');
-
-            videoCallBtn.classList.remove('hidden');
-
-            renderMessages();
-
-            renderContacts();
-
-
-
-            if (!activeConnections[peerId]) {
-
-                const conn = peer.connect(peerId);
-
-                setupDataConnection(conn);
-
-            }
-
-        }
-
-
-
-        function setupDataConnection(conn) {
-
-            activeConnections[conn.peer] = conn;
-
-
-
-            conn.on('data', (data) => {
-
-                if (!contacts[conn.peer]) {
-
-                    contacts[conn.peer] = { name: "ID: " + conn.peer.replace("net95_", ""), phone: "", messages: [] };
-
-                    renderContacts();
-
-                }
-
-                contacts[conn.peer].messages.push({ sender: 'incoming', text: data.text });
-
-                if (currentTargetId === conn.peer) renderMessages();
-
+            // Odbieranie połączeń przychodzących
+            peer.on('call', (call) => {
+                call.answer(localStream);
+                call.on('stream', (remoteStream) => {
+                    document.getElementById('remote-video').srcObject = remoteStream;
+                });
             });
-
-
-
-            conn.on('close', () => delete activeConnections[conn.peer]);
-
         }
 
-
-
-        function setupIncomingConnection(conn) {
-
-            setupDataConnection(conn);
-
-            if (!contacts[conn.peer]) {
-
-                contacts[conn.peer] = { name: "ID: " + conn.peer.replace("net95_", ""), phone: "", messages: [] };
-
-                renderContacts();
-
-            }
-
-        }
-
-
-
-        sendMsgBtn.addEventListener('click', () => {
-
-            const text = messageInput.value.trim();
-
-            if (!text || !currentTargetId) return;
-
-
-
-            contacts[currentTargetId].messages.push({ sender: 'outgoing', text: text });
-
-            renderMessages();
-
-            messageInput.value = '';
-
-
-
-            let conn = activeConnections[currentTargetId];
-
-            if (conn && conn.open) {
-
-                conn.send({ text: text });
-
-            } else {
-
-                conn = peer.connect(currentTargetId);
-
-                setupDataConnection(conn);
-
-                conn.on('open', () => conn.send({ text: text }));
-
-            }
-
-        });
-
-
-
-        messageInput.addEventListener('keypress', (e) => {
-
-            if (e.key === 'Enter') sendMsgBtn.click();
-
-        });
-
-
-
-        function renderMessages() {
-
-            messagesBox.innerHTML = '';
-
-            if (!currentTargetId || !contacts[currentTargetId]) return;
-
-            
-
-            contacts[currentTargetId].messages.forEach(msg => {
-
-                const div = document.createElement('div');
-
-                div.className = `message ${msg.sender}`;
-
-                div.innerText = msg.text;
-
-                messagesBox.appendChild(div);
-
-            });
-
-            messagesBox.scrollTop = messagesBox.scrollHeight;
-
-        }
-
-
-
-        function renderContacts() {
-
-            contactsList.innerHTML = '';
-
-            for (let id in contacts) {
-
-                const div = document.createElement('div');
-
-                div.className = `contact-item ${id === currentTargetId ? 'active' : ''}`;
-
-                div.innerText = contacts[id].name;
-
-                div.onclick = () => selectContact(id);
-
-                contactsList.appendChild(div);
-
-            }
-
-        }
-
-
-
-        videoCallBtn.addEventListener('click', () => triggerCallQuery('wideo'));
-
-        voiceCallBtn.addEventListener('click', () => triggerCallQuery('głos'));
-
-
-
-        function triggerCallQuery(type) {
-
-            if (!currentTargetId) return;
-
-            const targetPhone = contacts[currentTargetId].phone;
-
-            
-
-            // Poprawna obsługa ścieżki projektu na GitHub Pages (zachowuje bazową ścieżkę /retronet-call/)
-
-            const basePath = window.location.pathname;
-
-            const newUrl = `${basePath}?type=call&id=${targetPhone}`;
-
-            window.history.pushState({path: newUrl}, '', newUrl);
-
-
-
-            callModal.classList.remove('hidden');
-
-            callStatusText.innerText = `Wywoływanie (${type})...`;
-
-            
-
-            const call = peer.call(currentTargetId, localStream);
-
-            setupCallEvents(call);
-
-        }
-
-
-
-        function setupCallEvents(call) {
-
-            activeCall = call;
-
+        function connectToPeer() {
+            const destId = document.getElementById('peer-id-input').value.trim();
+            if (!destId) return alert("Wpisz ID odbiorcy!");
+
+            const call = peer.call(destId, localStream);
             call.on('stream', (remoteStream) => {
-
-                remoteVideo.srcObject = remoteStream;
-
-                callStatusText.innerText = "Połączenie aktywne";
-
+                document.getElementById('remote-video').srcObject = remoteStream;
             });
-
-            call.on('close', () => closeCallModal());
-
-            call.on('error', () => closeCallModal());
-
         }
 
-
-
-        endCallBtn.addEventListener('click', () => {
-
-            if (activeCall) activeCall.close();
-
-            closeCallModal();
-
+        // Automatyczne sprawdzenie czy użytkownik już jest zalogowany
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                const cleanName = user.email.split('@')[0];
+                onLoginSuccess(cleanName);
+            }
         });
-
-
-
-        function closeCallModal() {
-
-            callModal.classList.add('hidden');
-
-            remoteVideo.srcObject = null;
-
-            if (activeCall) activeCall = null;
-
-            acceptCallBtn.classList.add('hidden');
-
-            callStatusText.innerText = "Połączenie zakończone";
-
-            window.history.pushState({}, '', window.location.pathname);
-
-        }
-
     </script>
-
 </body>
-
-</html>  
+</html>
